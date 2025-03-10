@@ -38,6 +38,14 @@ Load the **DeepSeek-R1** model using the unsloth library, which comes pre-traine
 from unsloth import FastLanguageModel
 import torch
 
+# Load the distilled Llama model based on Unsloth.
+'''
+You can also choose other models, such as:
+  DeepSeek-R1-Distill-Qwen-7B
+  DeepSeek-R1-Distill-Qwen-14B
+  DeepSeek-R1-Distill-Qwen-32B
+  DeepSeek-R1-Distill-Llama-70B
+'''
 model, tokenizer = FastLanguageModel.from_pretrained(
     model_name = "unsloth/DeepSeek-R1-Distill-Llama-8B",
     max_seq_length = 2048,
@@ -85,7 +93,8 @@ trainer = SFTTrainer(
         per_device_train_batch_size = 2,
         gradient_accumulation_steps = 4,
         warmup_steps = 5,
-        max_steps = 60,  # Modify if training for more epochs
+        max_steps = 60,         # If num_train_epochs is True, comment out this line.
+        # num_train_epochs = 1, # For longer training runs!
         learning_rate = 2e-4,
         optim = "adamw_8bit",
         weight_decay = 0.01,
@@ -99,7 +108,7 @@ trainer.train()
 Once your model is trained, you can use it to generate answers for medical questions.
 
 ```python
-question = "一个患有急性阑尾炎的病人已经发病5天，腹痛稍有减轻但仍然发热，在体检时发现右下腹有压痛的包块，此时应如何处理？"
+question = "一个 65 岁的男性患者，既往有糖尿病病史，近日因右下肢肿胀、疼痛来诊。查体发现右小腿明显肿胀，皮温升高，Homans 征阳性。请问下一步应如何处理？"
 inputs = tokenizer([prompt_style.format(question, "")], return_tensors="pt").to("cuda")
 outputs = model.generate(input_ids=inputs.input_ids, attention_mask=inputs.attention_mask, max_new_tokens=1200, use_cache=True)
 response = tokenizer.batch_decode(outputs)
